@@ -1,0 +1,70 @@
+name: Build and Test Erlang Library
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: x86_64
+          # - os: macos-latest
+          #   arch: aarch64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up SSH key (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.CRUD_JT_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Set up Elixir, Rebar3 and run tests (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          curl -fsSO https://elixir-lang.org/install.sh
+          sh install.sh elixir@1.18.3 otp@27.2.3
+          installs_dir=$HOME/.elixir-install/installs
+          export PATH=$installs_dir/otp/27.2.3/bin:$PATH
+          export PATH=$installs_dir/elixir/1.18.3-otp-27/bin:$PATH
+
+          mkdir yo
+          cd yo
+          wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
+          ./rebar3 local install
+          export PATH=/home/runner/.cache/rebar3/bin:$PATH
+          rebar3 --version
+
+          mv /home/runner/work/crudjt_erlang/crudjt_erlang/crudjt-elixir /home/runner/work/crudjt_erlang/crudjt-elixir
+          cd /home/runner/work/crudjt_erlang/crudjt-elixir
+
+          git init -b master
+          git config user.name "CI"
+          git config user.email "ci@local"
+
+          git branch
+
+          cd /home/runner/work/crudjt_erlang/crudjt_erlang/my_test_app
+
+
+
+          rebar3 deps
+          rebar3 escriptize
+          _build/default/bin/my_test_app
+
+      - name: Install Erlang, Rebar3 and run test (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install erlang rebar3 elixir
+          cd ./my_test_app
+          rebar3 deps
+          rebar3 escriptize
+          _build/default/bin/my_test_app
