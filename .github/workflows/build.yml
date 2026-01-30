@@ -10,8 +10,8 @@ jobs:
         include:
           - os: ubuntu-latest
             arch: x86_64
-          # - os: macos-latest
-          #   arch: aarch64
+          - os: macos-latest
+            arch: aarch64
 
     runs-on: ${{ matrix.os }}
 
@@ -42,19 +42,7 @@ jobs:
           ./rebar3 local install
           export PATH=/home/runner/.cache/rebar3/bin:$PATH
           rebar3 --version
-
-          mv /home/runner/work/crudjt_erlang/crudjt_erlang/crudjt-elixir /home/runner/work/crudjt_erlang/crudjt-elixir
-          cd /home/runner/work/crudjt_erlang/crudjt-elixir
-
-          git init -b master
-          git config user.name "CI"
-          git config user.email "ci@local"
-
-          git branch
-
-          cd /home/runner/work/crudjt_erlang/crudjt_erlang/my_test_app
-
-
+          cd ../my_test_app
 
           rebar3 deps
           rebar3 escriptize
