@@ -52,7 +52,7 @@ export CRUDJT_ENCRYPTED_KEY=$(openssl rand -base64 48)
 application:ensure_all_started(crudjt_erlang),
 
 'Elixir.CRUDJT.Config':start_master([
-    {encrypted_key, System.fetch_env!("CRUDJT_ENCRYPTED_KEY")},
+    {encrypted_key, list_to_binary(os:getenv("CRUDJT_ENCRYPTED_KEY"))},
     {store_jt_path, <<"path/to/local/storage">>}, % optional
     {grpc_port, 50051} % default
 ]).
@@ -73,7 +73,8 @@ Typical examples:
 application:ensure_all_started(crudjt_erlang),
 
 'Elixir.CRUDJT.Config':connect_to_master([
-    {grpc_port, 50051} # default
+    {grpc_host, <<"127.0.0.1">>}, % default
+    {grpc_port, 50051} % default
 ]).
 ```
 
@@ -93,9 +94,9 @@ Ttl = 3600 * 24 * 30, % optional: token lifetime (seconds)
 % Optional: read limit
 % Each read decrements the counter
 % When it reaches zero — the token is deleted
-silence_read = 10,
+Silence_read = 10,
 
-Token = 'Elixir.CRUDJT':create(data, ttl, silence_read).
+Token = 'Elixir.CRUDJT':create(Data, Ttl, Silence_read).
 % Token == <<"HBmKFXoXgJ46mCqer1WXyQ">>
 ```
 
