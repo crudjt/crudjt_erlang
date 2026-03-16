@@ -8,7 +8,7 @@ main(_) ->
     application:ensure_all_started(crudjt_erlang),
 
     'Elixir.CRUDJT.Config':start_master([
-        {encrypted_key, <<"Cm7B68NWsMNNYjzMDREacmpe5sI1o0g40ZC9w1yQW3WOes7Gm59UsittLOHR2dciYiwmaYq98l3tG8h9yXVCxg==">>},
+        {secret_key, <<"Cm7B68NWsMNNYjzMDREacmpe5sI1o0g40ZC9w1yQW3WOes7Gm59UsittLOHR2dciYiwmaYq98l3tG8h9yXVCxg==">>},
         {store_jt_path, <<"path/to/local/storage">>},
         {grpc_port, 50051}
     ]),
