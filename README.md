@@ -1,10 +1,11 @@
 <p align="center">
-  <img src="logos/crud_jt_logo_black.png#gh-light-mode-only" alt="Logo Light" />
-  <img src="logos/crud_jt_logo.png#gh-dark-mode-only" alt="Logo Dark" />
-</p>
-
-<p align="center">
-  Fast, file-backed JSON token for REST APIs with multi-process support
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="logos/crudjt_logo_white_on_dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="logos/crudjt_logo_dark_on_white.svg">
+    <img alt="Shows a dark logo" src="logos/crudjt_logo_dark.png">
+  </picture>
+    </br>
+    Erlang SDK for the fast, file-backed, scalable JSON token engine
 </p>
 
 <p align="center">
@@ -13,15 +14,12 @@
   </a>
 </p>
 
-## Why?  
-[Escape the JWT trap: predictable login, safe logout](https://medium.com/@CoffeeMainer/jwt-trap-login-logout-under-control-7f4495d6024d)
+> ⚠️ Version 1.0.0-beta — production testing phase   
+> API is stable. Feedback is welcome before the final 1.0.0 release
 
-CRUDJT runs a small local coordinator inside your app.
-One process acts as a leader, all others talk to it
-
-## In short
-
-CRUDJT gives you stateful sessions without JWT pain and without distributed complexity
+Fast B-tree–backed token store for stateful user sessions  
+Provides authentication and authorization across multiple processes  
+Optimized for vertical scaling on a single server  
 
 # Installation
 
@@ -37,28 +35,31 @@ Rebar3
 
 ## Start CRUDJT master (once)
 
-Start the CRUDJT master when your application boots  
+Start the CRUDJT master when your application boots
 
-Only **one process** should do this  
-The master is responsible for session state and coordination  
+Only **one process** can do this for a **single token storage**  
 
-### Generate an encrypted key
+The master process manages sessions and coordination    
+All functions can also be used directly from it
+
+### Generate a new secret key (terminal)
 
 ```sh
-export CRUDJT_ENCRYPTED_KEY=$(openssl rand -base64 48)
+export CRUDJT_SECRET_KEY=$(openssl rand -base64 48)
 ```
 
+### Start master (erlang)
 ```erlang
 application:ensure_all_started(crudjt_erlang),
 
 'Elixir.CRUDJT.Config':start_master([
-    {encrypted_key, list_to_binary(os:getenv("CRUDJT_ENCRYPTED_KEY"))},
+    {secret_key, list_to_binary(os:getenv("CRUDJT_SECRET_KEY"))},
     {store_jt_path, <<"path/to/local/storage">>}, % optional
     {grpc_port, 50051} % default
 ]).
 ```
 
-The encrypted key must be the same for all processes
+*Important: Use the same `secret_key` across all sessions. If the key changes, previously stored tokens cannot be decrypted and will return `nil` or `false`*  
 
 ## Connect to an existing CRUDJT master
 
@@ -101,11 +102,9 @@ Token = 'Elixir.CRUDJT':create(Data, Ttl, Silence_read).
 ```
 
 ```erlang
-Data = #{<<"user_id">> => 42, <<"role">> => 11},
-
 % To disable token expiration or read limits, pass `nil`
 Token = 'Elixir.CRUDJT':create(
-  Data,
+  #{<<"user_id">> => 42, <<"role">> => 11},
   nil, % disable TTL
   nil % disable read limit
 ).
@@ -128,7 +127,6 @@ Result = 'Elixir.CRUDJT':read(<<"HBmKFXoXgJ46mCqer1WXyQ">>).
 
 ```erlang
 Data = #{<<"user_id">> => 42, <<"role">> => 8},
-
 % `nil` disables limits
 Ttl = 600,
 Silence_read = 100,
@@ -156,32 +154,12 @@ Result = 'Elixir.CRUDJT':delete(<<"HBmKFXoXgJ46mCqer1WXyQ">>).
 ```
 
 # Performance
-**40k** requests of **256 bytes** — median over 10 runs  
-ARM64 (Apple M1+), macOS 15.6.1  
-Erlang 1.18.4 (Erlang/OTP 27)
-
-Measured in the master process (in-process execution)  
-No gRPC, network, or serialization overhead is included
-
-| Function | CRUDJT (Erlang) | JWT (Erlang) | redis-session-store (Ruby, Rails 8.0.4) |
-|----------|-------|------|------|
-| C        | `0.388 second` ![Logo Favicon Light](logos/crud_jt_logo_favicon_white.png#gh-light-mode-only) ![Logo Favicon Dark](logos/crud_jt_logo_favicon_black.png#gh-dark-mode-only) | 1.905 seconds | 4.057 seconds |
-| R        | `0.083 second` ![Logo Favicon Light](logos/crud_jt_logo_favicon_white.png#gh-light-mode-only) ![Logo Favicon Dark](logos/crud_jt_logo_favicon_black.png#gh-dark-mode-only) | 2.012 seconds | 7.011 seconds |
-| U        | `0.454 second` ![Logo Favicon Light](logos/crud_jt_logo_favicon_white.png#gh-light-mode-only) ![Logo Favicon Dark](logos/crud_jt_logo_favicon_black.png#gh-dark-mode-only) | X | 3.49 seconds |
-| D        | `0.244 second` ![Logo Favicon Light](logos/crud_jt_logo_favicon_white.png#gh-light-mode-only) ![Logo Favicon Dark](logos/crud_jt_logo_favicon_black.png#gh-dark-mode-only) | X | 6.589 seconds |
-
-[Full benchmark results](https://github.com/exwarvlad/benchmarks)
+> Metrics will be published after 1.0.0-beta GitHub Actions builds
 
 # Storage (File-backed)  
-Backed by a disk-based B-tree for predictable reads, writes, and deletes
 
 ## Disk footprint  
-**40k** tokens of **256 bytes** each — median over 10 creates  
-darwin23, APFS  
-
-`48 MB`  
-
-[Full disk footprint results](https://github.com/Cm7B68NWsMNNYjzMDREacmpe5sI1o0g40ZC9w1y/disk_footprint)
+> Metrics will be published after 1.0.0-beta GitHub Actions builds
 
 ## Path Lookup Order
 Stored tokens are placed in the **file system** according to the following order
@@ -204,15 +182,18 @@ For multi-process scenarios, CRUDJT uses gRPC over an insecure local port for sa
 The library has the following limits and requirements
 
 - **Erlang version:** tested with 1.17.3 | Erlang/OTP >= 27
-- **Supported platforms:** Linux, macOS, Windows (x86_64 / arm64)
+- **Supported platforms:** Linux, macOS (x86_64 / arm64). Windows (experimental, x86_64 / arm64)
 - **Maximum json size per token:** 256 bytes
-- **`encrypted_key` format:** must be Base64
-- **`encrypted_key` size:** must be 32, 48, or 64 bytes
+- **`secret_key` format:** must be Base64
+- **`secret_key` size:** must be 32, 48, or 64 bytes
 
 # Contact & Support
 <p align="center">
-  <img src="logos/crud_jt_logo_favicon_black_160.png#gh-light-mode-only" alt="Visit Light" />
-  <img src="logos/crud_jt_logo_favicon_white_160.png#gh-dark-mode-only" alt="Visit Dark" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="logos/crudjt_favicon_160x160_white_on_dark.svg" width=160 height=160>
+    <source media="(prefers-color-scheme: light)" srcset="logos/crudjt_favicon_160x160_dark_on_white.svg" width=160 height=160>
+    <img alt="Shows a dark favicon in light color mode and a white one in dark color mode" src="logos/crudjt_favicon_160x160_white.png" width=160 height=160>
+  </picture>
 </p>
 
 - **Custom integrations / new features / collaboration**: support@crudjt.com  
