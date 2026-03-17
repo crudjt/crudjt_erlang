@@ -55,6 +55,7 @@ application:ensure_all_started(crudjt_erlang),
 'Elixir.CRUDJT.Config':start_master([
     {secret_key, list_to_binary(os:getenv("CRUDJT_SECRET_KEY"))},
     {store_jt_path, <<"path/to/local/storage">>}, % optional
+    {grpc_host, <<"127.0.0.1">>}, % default
     {grpc_port, 50051} % default
 ]).
 ```
