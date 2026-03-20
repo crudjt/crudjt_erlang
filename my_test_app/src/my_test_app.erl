@@ -107,7 +107,7 @@ loop_asdf_qwerty(Value, Ttl, Silence_read, Data) when Ttl >= 0, Silence_read >= 
     benchmark(0, _, _) -> ok;
     benchmark(N, Requests, ScaleData) ->
         {TimeQ, List} = timer:tc(fun() -> lists:foldl(fun(_, Acc) -> ['Elixir.CRUDJT':create(ScaleData) | Acc] end, [], lists:seq(1, Requests)) end),
-        io:format("when creates 40k values with Turbo Queue: ~p seconds~n", [TimeQ / 1000000]),
+        io:format("when creates 40k values: ~p seconds~n", [TimeQ / 1000000]),
 
         {TimeW, _} = timer:tc(fun() -> lists:foreach(fun(V) -> 'Elixir.CRUDJT':read(V) end, List) end),
         io:format("when reads 40k values: ~p seconds~n", [TimeW / 1000000]),
