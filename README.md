@@ -40,7 +40,9 @@ Start the CRUDJT master when your application boots
 Only **one process** can do this for a **single token storage**  
 
 The master process manages sessions and coordination    
-All functions can also be used directly from it
+All functions can also be used directly from it  
+
+For containerized deployments, see: [Start CRUDJT master in Docker](#start-crudjt-master-in-docker)
 
 ### Generate a new secret key (terminal)
 
