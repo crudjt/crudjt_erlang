@@ -25,7 +25,7 @@ Optimized for vertical scaling on a single server
 
 Rebar3
 ```erlang
-{deps, [{crudjt_erlang, {git, "git@github.com:crudjt/crudjt_erlang.git", {branch, "master"}}}]}.
+{deps, [{crudjt_erlang, {git, "https://github.com/crudjt/crudjt_erlang.git", {branch, "master"}}}]}.
 ```
 
 ## How to use
