@@ -5,7 +5,7 @@
     <img alt="Shows a dark logo" src="https://raw.githubusercontent.com/crudjt/crudjt/refs/heads/master/logos/crudjt_logo_dark.png">
   </picture>
     </br>
-    Ruby SDK for the fast, file-backed, scalable JSON token engine
+    Erlang SDK for the fast, file-backed, scalable JSON token engine
 </p>
 
 <p align="center">
