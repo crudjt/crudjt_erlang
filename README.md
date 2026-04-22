@@ -14,6 +14,8 @@
   </a>
 </p>
 
+[Escape the JWT trap: predictable login, safe logout](https://medium.com/@CoffeeMainer/jwt-trap-login-logout-under-control-9f3116d1db1d)
+
 Fast B-tree–backed token store for stateful user sessions  
 Provides authentication and authorization across multiple processes  
 Optimized for vertical scaling on a single server  
